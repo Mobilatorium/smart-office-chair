@@ -5,12 +5,18 @@ SitDetector::SitDetector(Ultrasonic* ultrasonic, uint32_t threshold_distance_cm)
     this->threshold_distance_cm = threshold_distance_cm;
 }
 
-bool SitDetector::IsSitting() {
-    int32_t counter = 0;
-    for (int i = 0; i < sampling_number; ++i) {
-        if (ultrasonic->MeasureInCentimeters() < threshold_distance_cm) {
-            ++counter;
-        }
+bool SitDetector::IsSitting(bool was_sitting_moment_ago) {
+    counter += (ultrasonic->MeasureInCentimeters() < threshold_distance_cm) ? +1 : -1;
+
+    if (counter < COUNTER_DECISION_STAND) {
+        counter = COUNTER_DECISION_STAND;
+        return false;
     }
-    return counter > sampling_number / 2;
+
+    if (counter > COUNTER_DECISION_SIT) {
+        counter = COUNTER_DECISION_SIT;
+        return true;
+    }
+
+    return was_sitting_moment_ago;
 }
